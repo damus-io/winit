@@ -19,6 +19,7 @@ use smol_str::SmolStr;
 use self::x11::{X11Error, XConnection, XError, XNotSupported};
 use crate::dpi::{PhysicalPosition, PhysicalSize, Position, Size};
 use crate::error::{EventLoopError, ExternalError, NotSupportedError, OsError as RootOsError};
+use crate::event::TextInputState;
 use crate::event_loop::{
     ActiveEventLoop as RootELW, AsyncRequestSerial, ControlFlow, DeviceEvents, EventLoopClosed,
 };
@@ -518,6 +519,16 @@ impl Window {
     }
 
     #[inline]
+    pub fn begin_ime_input(&self) {
+        x11_or_wayland!(match self; Window(w) => w.begin_ime_input())
+    }
+
+    #[inline]
+    pub fn end_ime_input(&self) {
+        x11_or_wayland!(match self; Window(w) => w.end_ime_input())
+    }
+
+    #[inline]
     pub fn reset_dead_keys(&self) {
         common::xkb::reset_dead_keys()
     }
@@ -531,6 +542,9 @@ impl Window {
     pub fn set_ime_purpose(&self, purpose: ImePurpose) {
         x11_or_wayland!(match self; Window(w) => w.set_ime_purpose(purpose))
     }
+
+    #[inline]
+    pub fn set_text_input_state(&self, _state: TextInputState) {}
 
     #[inline]
     pub fn focus_window(&self) {

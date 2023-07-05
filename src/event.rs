@@ -230,6 +230,13 @@ pub enum WindowEvent {
     /// - **iOS / Android / Web / Orbital:** Unsupported.
     Ime(Ime),
 
+    /// A text input state from the platform soft keyboard
+    ///
+    /// ## Platform-specific
+    ///
+    /// - **iOS / Android** only
+    TextInputState(TextInputState),
+
     /// The cursor has moved on the window.
     ///
     /// ## Platform-specific
@@ -974,6 +981,32 @@ pub enum MouseScrollDelta {
     PixelDelta(PhysicalPosition<f64>),
 }
 
+/// This struct holds a span within a region of text from `start` (inclusive) to
+/// `end` (exclusive).
+///
+/// An empty span or cursor position is specified with `Some(start) == Some(end)`.
+///
+/// An undefined span is specified with start = end = `None`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct TextSpan {
+    /// The start of the span (inclusive)
+    pub start: Option<usize>,
+
+    /// The end of the span (exclusive)
+    pub end: Option<usize>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct TextInputState {
+    pub text: String,
+    /// A selection defined on the text.
+    pub selection: TextSpan,
+    /// A composing region defined on the text.
+    pub compose_region: TextSpan,
+}
+
 /// Handle to synchronously change the size of the window from the
 /// [`WindowEvent`].
 #[derive(Debug, Clone)]
@@ -1047,6 +1080,7 @@ mod tests {
                 with_window_event(HoveredFile("x.txt".into()));
                 with_window_event(HoveredFileCancelled);
                 with_window_event(Ime(Enabled));
+                with_window_event(TextInputState(state));
                 with_window_event(CursorMoved { device_id: did, position: (0, 0).into() });
                 with_window_event(ModifiersChanged(event::Modifiers::default()));
                 with_window_event(CursorEntered { device_id: did });
