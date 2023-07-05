@@ -17,7 +17,7 @@ use crate::cursor::Cursor;
 use crate::dpi::{PhysicalPosition, PhysicalSize, Position, Size};
 use crate::error;
 use crate::error::EventLoopError;
-use crate::event::{self, Force, InnerSizeWriter, StartCause};
+use crate::event::{self, Force, InnerSizeWriter, StartCause, TextInputState, TextSpan};
 use crate::event_loop::{self, ActiveEventLoop as RootAEL, ControlFlow, DeviceEvents};
 use crate::platform::pump_events::PumpStatus;
 use crate::platform_impl::Fullscreen;
@@ -474,6 +474,24 @@ impl<T: 'static> EventLoop<T> {
                     },
                 }
             },
+
+            InputEvent::TextEvent(ime_state) => {
+                let event: event::Event<T> = event::Event::WindowEvent {
+                    window_id: window::WindowId(WindowId),
+                    event: event::WindowEvent::TextInputState(TextInputState {
+                        text: ime_state.text.to_owned(),
+                        selection: TextSpan {
+                            start: Some(ime_state.selection.start),
+                            end: Some(ime_state.selection.end),
+                        },
+                        compose_region: TextSpan {
+                            start: ime_state.compose_region.map(|cr| cr.start),
+                            end: ime_state.compose_region.map(|cr| cr.end),
+                        },
+                    }),
+                };
+                callback(event, self.window_target());
+            },
             _ => {
                 warn!("Unknown android_activity input event {event:?}")
             },
@@ -925,6 +943,28 @@ impl Window {
     }
 
     pub fn set_ime_purpose(&self, _purpose: ImePurpose) {}
+
+    pub fn begin_ime_input(&self) {
+        self.app.show_soft_input(true);
+    }
+
+    pub fn end_ime_input(&self) {
+        self.app.hide_soft_input(true);
+    }
+
+    pub fn set_text_input_state(&self, state: TextInputState) {
+        self.app.set_text_input_state(android_activity::input::TextInputState {
+            text: state.text,
+            selection: android_activity::input::TextSpan {
+                start: state.selection.start.unwrap_or(0),
+                end: state.selection.end.unwrap_or(0),
+            },
+            compose_region: state.compose_region.start.map(|start| {
+                let end = state.compose_region.end.unwrap_or(start);
+                android_activity::input::TextSpan { start, end }
+            }),
+        });
+    }
 
     pub fn focus_window(&self) {}
 

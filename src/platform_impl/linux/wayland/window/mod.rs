@@ -590,6 +590,10 @@ impl Window {
         }
     }
 
+    pub fn begin_ime_input(&self) {}
+
+    pub fn end_ime_input(&self) {}
+
     #[inline]
     pub fn set_ime_allowed(&self, allowed: bool) {
         let mut window_state = self.window_state.lock().unwrap();

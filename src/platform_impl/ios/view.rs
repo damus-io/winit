@@ -14,10 +14,21 @@ use objc2_ui_kit::{
 
 use super::app_state::{self, EventWrapper};
 use super::window::WinitUIWindow;
+
 use crate::dpi::PhysicalPosition;
-use crate::event::{ElementState, Event, Force, KeyEvent, Touch, TouchPhase, WindowEvent};
+use crate::event::{
+    DeviceId as RootDeviceId, ElementState, Event, Force, KeyEvent, KeyboardInput, ModifiersState,
+    Touch, TouchPhase, VirtualKeyCode, WindowEvent,
+};
 use crate::keyboard::{Key, KeyCode, KeyLocation, NamedKey, NativeKeyCode, PhysicalKey};
-use crate::platform_impl::platform::DEVICE_ID;
+use crate::platform::ios::ValidOrientations;
+use crate::platform_impl::platform::{
+    app_state,
+    event_loop::{EventProxy, EventWrapper},
+    ffi::{UIRectEdge, UIUserInterfaceIdiom},
+    window::PlatformSpecificWindowBuilderAttributes,
+    Fullscreen, DEVICE_ID,
+};
 use crate::platform_impl::KeyEventExtra;
 use crate::window::{WindowAttributes, WindowId as RootWindowId};
 
@@ -323,6 +334,23 @@ declare_class!(
         }
     }
 
+    unsafe impl Protocol<UIKeyInput> for WinitView {
+        #[sel(hasText)]
+        fn has_text(&self) -> bool {
+            true
+        }
+
+        #[sel(insertText:)]
+        fn insert_text(&self, _text: &NSString) {
+            self.handle_insert_text(_text)
+        }
+
+        #[sel(deleteBackward)]
+        fn delete_backward(&self) {
+            self.handle_delete_backward()
+        }
+    }
+
     unsafe impl NSObjectProtocol for WinitView {}
 
     unsafe impl UIGestureRecognizerDelegate for WinitView {
@@ -471,6 +499,43 @@ impl WinitView {
             }
         } else if let Some(recognizer) = self.ivars().rotation_gesture_recognizer.take() {
             self.removeGestureRecognizer(&recognizer);
+        }
+    }
+
+    fn handle_insert_text(&self, text: &NSString) {
+        let window = self.window().unwrap();
+        let window_id = RootWindowId(window.id());
+        unsafe {
+            // send individual events for each character
+            app_state::handle_nonuser_events(text.to_string().chars().map(|c| {
+                EventWrapper::StaticEvent(Event::WindowEvent {
+                    window_id,
+                    event: WindowEvent::ReceivedCharacter(c),
+                })
+            }));
+        }
+    }
+
+    fn handle_delete_backward(&self) {
+        let window = self.window().unwrap();
+        let window_id = RootWindowId(window.id());
+        let uiscreen = window.screen();
+        unsafe {
+            app_state::handle_nonuser_events(std::iter::once(EventWrapper::StaticEvent(
+                Event::WindowEvent {
+                    window_id,
+                    event: WindowEvent::KeyboardInput {
+                        device_id: RootDeviceId(DeviceId { uiscreen: Id::as_ptr(&uiscreen) }),
+                        input: KeyboardInput {
+                            state: ElementState::Pressed,
+                            scancode: 0,
+                            virtual_keycode: Some(VirtualKeyCode::Back),
+                            modifiers: ModifiersState::default(),
+                        },
+                        is_synthetic: true,
+                    },
+                },
+            )));
         }
     }
 
