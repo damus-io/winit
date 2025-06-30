@@ -1845,7 +1845,7 @@ pub enum WindowLevel {
 ///
 /// ## Platform-specific
 ///
-/// - **iOS / Android / Web / Windows / X11 / macOS / Orbital:** Unsupported.
+/// - **iOS / Web / Windows / X11 / macOS / Orbital:** Unsupported.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[non_exhaustive]
 pub enum ImePurpose {
@@ -1857,6 +1857,8 @@ pub enum ImePurpose {
     ///
     /// For example, that could alter OSK on Wayland to show extra buttons.
     Terminal,
+    /// Multiline inputs can change enter button behavior on mobile
+    Multiline,
 }
 
 impl Default for ImePurpose {
