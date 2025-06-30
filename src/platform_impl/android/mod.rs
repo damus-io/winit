@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 
 use android_activity::input::{InputEvent, KeyAction, Keycode, MotionAction};
 use android_activity::{
-    AndroidApp, AndroidAppWaker, ConfigurationRef, InputStatus, MainEvent, Rect,
+    AndroidApp, AndroidAppWaker, ConfigurationRef, InputStatus, MainEvent, Rect, ImeOptions, InputType
 };
 use smol_str::SmolStr;
 use tracing::{debug, trace, warn};
@@ -942,7 +942,26 @@ impl Window {
         }
     }
 
-    pub fn set_ime_purpose(&self, _purpose: ImePurpose) {}
+    pub fn set_ime_purpose(&self, purpose: ImePurpose) {
+        match purpose {
+            ImePurpose::Password => {
+                let input_type = InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_VARIATION_PASSWORD;
+                let options = ImeOptions::IME_NULL;
+                self.app.set_ime_editor_info(input_type, options);
+            }
+
+            ImePurpose::Multiline => {
+                let input_type = InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_FLAG_MULTI_LINE;
+                let options = ImeOptions::IME_FLAG_NO_ENTER_ACTION;
+
+                self.app.set_ime_editor_info(input_type, options);
+            }
+
+            ImePurpose::Normal | ImePurpose::Terminal => {
+                // TODO: should terminal do something different here?
+            }
+        }
+    }
 
     pub fn begin_ime_input(&self) {
         self.app.show_soft_input(true);
