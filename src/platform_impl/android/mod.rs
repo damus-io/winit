@@ -294,6 +294,11 @@ impl<T: 'static> EventLoop<T> {
                 },
                 MainEvent::InsetsChanged { .. } => {
                     // XXX: how to forward this state to applications?
+                    callback(event::Event::WindowEvent {
+                            window_id: window::WindowId(WindowId),
+                            event: event::WindowEvent::InsetsChanged,
+                        }, self.window_target());
+
                     warn!("TODO: handle Android InsetsChanged notification");
                 },
                 unknown => {
