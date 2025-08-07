@@ -442,6 +442,18 @@ pub enum WindowEvent {
     /// Winit will aggregate duplicate redraw requests into a single event, to
     /// help avoid duplicating rendering work.
     RedrawRequested,
+
+    /// Window Insets have changed
+    ///
+    /// This gets triggered when insets covering the window has changed.
+    ///
+    /// ## Platform-specific
+    ///
+    /// ### Android
+    ///
+    /// This is only implemented on android on the game-activity backend at
+    /// the moment.
+    InsetsChanged,
 }
 
 /// Identifier of an input device.
