@@ -113,7 +113,7 @@ softbuffer = { version = "0.4.0", default-features = false, features = [
 ] }
 
 [target.'cfg(target_os = "android")'.dependencies]
-android-activity = { git = "https://github.com/damus-io/android-activity", rev = "092a83b747937a2890ac219617a4252c001842ea" }
+android-activity = { git = "https://github.com/damus-io/android-activity", rev = "4ee16f1585e4a75031dc10785163d4b920f95805" }
 ndk = { version = "0.9.0", default-features = false }
 
 [target.'cfg(any(target_os = "ios", target_os = "macos"))'.dependencies]
