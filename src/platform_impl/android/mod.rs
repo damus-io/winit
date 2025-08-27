@@ -6,10 +6,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use android_activity::input::{InputEvent, KeyAction, Keycode, MotionAction};
-use android_activity::{
-    AndroidApp, AndroidAppWaker, ConfigurationRef, InputStatus, MainEvent, Rect, ImeOptions, InputType
+use android_activity::input::{
+    ImeOptions, InputEvent, InputType, KeyAction, Keycode, MotionAction, TextInputAction,
 };
+use android_activity::{AndroidApp, AndroidAppWaker, ConfigurationRef, InputStatus, MainEvent, Rect};
 use tracing::{debug, trace, warn};
 
 use crate::cursor::Cursor;
@@ -951,14 +951,14 @@ impl Window {
             ImePurpose::Password => {
                 let input_type = InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_VARIATION_PASSWORD;
                 let options = ImeOptions::IME_NULL;
-                self.app.set_ime_editor_info(input_type, options);
+                self.app.set_ime_editor_info(input_type, TextInputAction::Unspecified, options);
             }
 
             ImePurpose::Multiline => {
                 let input_type = InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_FLAG_MULTI_LINE;
                 let options = ImeOptions::IME_FLAG_NO_ENTER_ACTION;
 
-                self.app.set_ime_editor_info(input_type, options);
+                self.app.set_ime_editor_info(input_type, TextInputAction::Unspecified, options);
             }
 
             ImePurpose::Normal | ImePurpose::Terminal => {
