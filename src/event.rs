@@ -999,6 +999,10 @@ pub enum MouseScrollDelta {
 /// An empty span or cursor position is specified with `Some(start) == Some(end)`.
 ///
 /// An undefined span is specified with start = end = `None`.
+///
+/// The indices are in the platform's text units, not bytes or chars. On Android they are
+/// UTF-16 code units: the soft keyboard's selection comes from Java's `Selection`, so every
+/// character outside the Basic Multilingual Plane (e.g. most emoji) counts as two.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TextSpan {
