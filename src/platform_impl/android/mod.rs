@@ -292,13 +292,13 @@ impl<T: 'static> EventLoop<T> {
                     warn!("TODO: forward onDestroy notification to application");
                 },
                 MainEvent::InsetsChanged { .. } => {
-                    // XXX: how to forward this state to applications?
-                    callback(event::Event::WindowEvent {
+                    callback(
+                        event::Event::WindowEvent {
                             window_id: window::WindowId(WindowId),
                             event: event::WindowEvent::InsetsChanged,
-                        }, self.window_target());
-
-                    warn!("TODO: handle Android InsetsChanged notification");
+                        },
+                        self.window_target(),
+                    );
                 },
                 unknown => {
                     trace!("Unknown MainEvent {unknown:?} (ignored)");
@@ -946,25 +946,29 @@ impl Window {
         }
     }
 
+    /// Set the soft keyboard's editor info for `purpose`.
+    ///
+    /// Every purpose sets the full editor info, `Normal` included. The editor info persists
+    /// across edits, so a purpose that set nothing would keep the previous one's flags: a
+    /// single-line edit after a multiline one would still insert a newline on Enter.
     pub fn set_ime_purpose(&self, purpose: ImePurpose) {
-        match purpose {
-            ImePurpose::Password => {
-                let input_type = InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_VARIATION_PASSWORD;
-                let options = ImeOptions::IME_NULL;
-                self.app.set_ime_editor_info(input_type, TextInputAction::Unspecified, options);
-            }
+        let (input_type, options) = match purpose {
+            ImePurpose::Normal => (InputType::TYPE_CLASS_TEXT, ImeOptions::IME_NULL),
+            ImePurpose::Password => (
+                InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_VARIATION_PASSWORD,
+                ImeOptions::IME_NULL,
+            ),
+            ImePurpose::Terminal => (
+                InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_FLAG_NO_SUGGESTIONS,
+                ImeOptions::IME_NULL,
+            ),
+            ImePurpose::Multiline => (
+                InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_FLAG_MULTI_LINE,
+                ImeOptions::IME_FLAG_NO_ENTER_ACTION,
+            ),
+        };
 
-            ImePurpose::Multiline => {
-                let input_type = InputType::TYPE_CLASS_TEXT | InputType::TYPE_TEXT_FLAG_MULTI_LINE;
-                let options = ImeOptions::IME_FLAG_NO_ENTER_ACTION;
-
-                self.app.set_ime_editor_info(input_type, TextInputAction::Unspecified, options);
-            }
-
-            ImePurpose::Normal | ImePurpose::Terminal => {
-                // TODO: should terminal do something different here?
-            }
-        }
+        self.app.set_ime_editor_info(input_type, TextInputAction::Unspecified, options);
     }
 
     pub fn begin_ime_input(&self) {
