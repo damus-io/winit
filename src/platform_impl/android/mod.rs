@@ -492,6 +492,7 @@ impl<T: 'static> EventLoop<T> {
                             start: ime_state.compose_region.map(|cr| cr.start),
                             end: ime_state.compose_region.map(|cr| cr.end),
                         },
+                        version: ime_state.version,
                     }),
                 };
                 callback(event, self.window_target());
@@ -990,6 +991,7 @@ impl Window {
                 let end = state.compose_region.end.unwrap_or(start);
                 android_activity::input::TextSpan { start, end }
             }),
+            version: state.version,
         });
     }
 

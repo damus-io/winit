@@ -1021,6 +1021,21 @@ pub struct TextInputState {
     pub selection: TextSpan,
     /// A composing region defined on the text.
     pub compose_region: TextSpan,
+    /// Orders the states the app sets against the ones the soft keyboard sends back.
+    ///
+    /// On a state passed to [`Window::set_text_input_state`], this is its version, and it must
+    /// be greater than the last one set.
+    ///
+    /// On a [`WindowEvent::TextInputState`], this is the version of the last state the app set
+    /// that the keyboard had been given when it made this one, or 0 if it had none. The app and
+    /// the keyboard both edit the text, so a version older than the app's last set means the
+    /// keyboard made the state before it saw the app's latest edit: it is stale, and the app's
+    /// own state has already replaced it.
+    ///
+    /// Only Android tracks versions.
+    ///
+    /// [`Window::set_text_input_state`]: crate::window::Window::set_text_input_state
+    pub version: u64,
 }
 
 /// Handle to synchronously change the size of the window from the
